@@ -1,0 +1,115 @@
+#include <iostream>
+#include <vector>
+#include <fstream>
+
+using namespace std;
+
+
+struct Edge {
+    int a, b, cost;
+};
+
+void PrintMatrix(std::vector<std::vector<int>>& Matrix) {
+    for (auto i : Matrix) {
+        for (auto j : i) {
+            std::cout << j << " ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+}
+
+int FindPath(int i, int j, int cols, vector<Edge>& vec) {
+    for (int k = 0; k < cols; ++k) {
+        cout << vec[k].cost << endl;
+        if (vec[k].a == i && vec[k].b == j)
+            cout << i << " " << j << " " << vec[k].cost << endl;
+            return vec[k].cost;
+    }
+    return 125;
+}
+
+
+int main() {
+    int rows = 8;
+    int cols = 16; //количество вершин в графе (0-7)
+    //двумерный массив под матрицу инцидентности, заполненный нулями
+    std::vector<std::vector<int>> incidenceMatrixB(rows, std::vector<int>(rows, 0));
+
+    std::ifstream in1("../input.txt");
+    std::ifstream in2("../input2.txt");
+
+    setlocale(LC_ALL, "Russian");
+
+    if (in1.is_open()) {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < rows; j++) {
+                in1 >> incidenceMatrixB[i][j]; //сin если с консоли
+            }
+        }
+        std::cout << "Матрица инцидентности:" << std::endl;
+        PrintMatrix(incidenceMatrixB);
+
+        //двумерный пустой массив под матрицу смежности
+        std::vector<std::vector<int>> adjacencyMatrixA(rows, std::vector<int>(rows, 0));
+
+        //алгоритм перевода матрицы инцидентности в матрицу смежности
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < rows; j++) {
+                if (incidenceMatrixB[i][j] == 1)
+                    if (in2.is_open()) {
+                        std::vector<Edge> e(cols);
+                        for (int i = 0; i < cols; i++) {
+                            in2 >> e[i].a >> e[i].b >> e[i].cost;
+                        }
+                        for (auto i : e) {
+                            //cout << i.a << " " << i.b << " " << i.cost << endl;
+                        }
+                        adjacencyMatrixA[i][j] = 1;
+                    }
+                    else {
+                        cout << "Error of opening file in2" << endl;
+                    }
+            }
+        }
+        std::cout << "Матрица смежности:" << std::endl;
+        PrintMatrix(adjacencyMatrixA);
+
+    }
+    else {
+        std::cout << "Error of opening file in1" << std::endl;
+    }
+
+    if (in2.is_open()) {
+        //Используем алгоритм Форда-Беллмана для поиска кратчайших путей
+        std::vector<Edge> e(rows);
+        const int INF = 1000000000;
+        std::vector<int> d(cols, INF);
+        for (int i = 0; i < rows - 1; i++) {
+            in2 >> e[i].a >> e[i].b >> e[i].cost;
+        }
+        int v; //номер стартовой вершины (от 0 до 7)
+        std::cout << "Введите номер стартовой вершины, для которой выведутся кратчайшие расстояния(0-7): " << std::endl;
+        std::cin >> v;
+        if (v > cols - 1) { std::cout << "Нет такой вершины" << std::endl; }
+        else {
+            d[v] = 0;
+            for (int i = 0; i < cols - 1; ++i) {
+                for (int j = 0; j < rows; ++j) {
+                    if (d[e[j].a] < INF) {
+                        d[e[j].b] = std::min(d[e[j].b], d[e[j].a] + e[j].cost);
+                    }
+                }
+            }
+
+            std::cout << "Массив кратчайших расстояний для вершины " << v << ":" << std::endl;
+            for (auto& i : d) {
+                std::cout << i << " ";
+            }
+        }
+    }
+    else {
+        std::cout << "Error of opening file in2" << std::endl;
+    }
+    return 0;
+}
